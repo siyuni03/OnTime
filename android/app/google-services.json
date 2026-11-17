@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "52027062002",
+    "project_id": "ontime-93484",
+    "storage_bucket": "ontime-93484.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:52027062002:android:7b2dbcd35c7b12b12c426b",
+        "android_client_info": {
+          "package_name": "com.aicrew.ontime"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdAbR-4ANnlB92-hv5YZ7MEkbIuMRgdnk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
