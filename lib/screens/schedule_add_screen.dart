@@ -163,7 +163,6 @@ class _ScheduleAddScreenState extends State<ScheduleAddScreen> {
     });
 
     try {
-      // 사용자에게 로딩 피드백을 명확히 보여주기 위한 짧은 대기 및 저장 실행
       await Future.delayed(const Duration(milliseconds: 400));
 
       widget.onSave(
@@ -224,6 +223,7 @@ class _ScheduleAddScreenState extends State<ScheduleAddScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: _titleController,
+                maxLength: 30, // [핫픽스 3] 극단적 장문 폭탄 방어 (최대 30자)
                 decoration: _inputDecoration(
                   hintText: '예: 데이터베이스 수업',
                   icon: Icons.event_note_outlined,
@@ -242,6 +242,7 @@ class _ScheduleAddScreenState extends State<ScheduleAddScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: _locationController,
+                maxLength: 50, // [핫픽스 3] 극단적 장문 폭탄 방어 (최대 50자)
                 decoration: _inputDecoration(
                   hintText: '예: 공학관 301호',
                   icon: Icons.location_on_outlined,
@@ -294,6 +295,7 @@ class _ScheduleAddScreenState extends State<ScheduleAddScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: _departureController,
+                maxLength: 50, // [핫픽스 3] 극단적 장문 폭탄 방어 (최대 50자)
                 decoration: _inputDecoration(
                   hintText: '예: 현재 위치 또는 집 주소',
                   icon: Icons.trip_origin,
@@ -427,6 +429,7 @@ class _ScheduleAddScreenState extends State<ScheduleAddScreen> {
               TextField(
                 controller: _memoController,
                 maxLines: 4,
+                maxLength: 200, // [핫픽스 3] 극단적 장문 폭탄 방어 (최대 200자)
                 decoration: _inputDecoration(
                   hintText: '필요한 내용을 입력해주세요.',
                   icon: Icons.notes_outlined,
