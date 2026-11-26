@@ -39,6 +39,9 @@ class _ScheduleAddScreenState extends State<ScheduleAddScreen> {
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedStartTime = const TimeOfDay(hour: 9, minute: 0);
 
+  // [핫픽스 2] 로딩 상태 관리 변수 (중복 클릭 및 연타 방어용)
+  bool _isSaving = false;
+
   @override
   void initState() {
     super.initState();
@@ -127,6 +130,59 @@ class _ScheduleAddScreenState extends State<ScheduleAddScreen> {
       hintText: hintText,
       prefixIcon: icon == null ? null : Icon(icon),
     );
+  }
+
+  // [핫픽스 1 & 2 통합] 공백 방어 및 로딩 스피너 저장 처리 함수
+  Future<void> _handleSave() async {
+    if (_isSaving) return; // 이미 저장 중이면 연타 차단
+
+    final title = _titleController.text.trim();
+    final location = _locationController.text.trim();
+    final departure = _departureController.text.trim();
+    final bufferMinutes =
+        _selectedBufferMinutes ??
+        (int.tryParse(_bufferController.text.trim()) ?? 0);
+    final memo = _memoController.text.trim();
+
+    // 1. 공백 입력 방어 (.trim() 후 빈 문자열인지 검사)
+    if (title.isEmpty || location.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ 일정 이름과 장소를 모두 입력해 주세요! (공백만 입력 불가)'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return; // 저장 중단
+    }
+
+    // 2. 로딩 스피너 활성화 (버튼 비활성화 및 빙글빙글 아이콘 표시)
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      // 사용자에게 로딩 피드백을 명확히 보여주기 위한 짧은 대기 및 저장 실행
+      await Future.delayed(const Duration(milliseconds: 400));
+
+      widget.onSave(
+        title,
+        location,
+        departure,
+        _selectedDate,
+        _formatTime(_selectedStartTime),
+        bufferMinutes,
+        _selectedMobilityMode,
+        memo,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
   }
 
   @override
@@ -382,40 +438,47 @@ class _ScheduleAddScreenState extends State<ScheduleAddScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    final title = _titleController.text.trim();
-                    final location = _locationController.text.trim();
-                    final bufferMinutes =
-                        _selectedBufferMinutes ??
-                        (int.tryParse(_bufferController.text.trim()) ?? 0);
-                    final memo = _memoController.text.trim();
-
-                    widget.onSave(
-                      title,
-                      location,
-                      _departureController.text.trim(),
-                      _selectedDate,
-                      _formatTime(_selectedStartTime),
-                      bufferMinutes,
-                      _selectedMobilityMode,
-                      memo,
-                    );
-                  },
+                  // 로딩 중(_isSaving == true)일 때는 버튼 클릭 비활성화(null)
+                  onPressed: _isSaving ? null : _handleSave,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: OnTimeColors.primary,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: OnTimeColors.primary.withOpacity(0.6),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: Text(
-                    widget.initialSchedule == null ? '일정 저장' : '변경사항 저장',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: _isSaving
+                      ? const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.2,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              '저장 중...',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Text(
+                          widget.initialSchedule == null ? '일정 저장' : '변경사항 저장',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ],
